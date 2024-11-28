@@ -1,9 +1,15 @@
-import express from "express";
-import axios from "axios";
-import { MongoClient, ObjectId } from "mongodb";
-import "dotenv/config";
+// import express from "express";
+// import axios from "axios";
+// import { MongoClient, ObjectId } from "mongodb";
+// import "dotenv/config";
 console.log("MongoDB Server URL:", process.env.MONGO_DB_SERVER);
-import cors from "cors";
+// import cors from "cors";
+
+const express = require("express");
+const axios = require('axios');
+const { MongoClient, ObjectId } = require("mongodb");
+const cors = require('cors');
+require('dotenv').config();
 
 // Connection URL
 const url = process.env.MONGO_DB_SERVER;
