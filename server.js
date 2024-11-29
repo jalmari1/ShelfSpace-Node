@@ -2,7 +2,6 @@
 // import axios from "axios";
 // import { MongoClient, ObjectId } from "mongodb";
 // import "dotenv/config";
-console.log("MongoDB Server URL:", process.env.MONGO_DB_SERVER);
 // import cors from "cors";
 
 const express = require("express");
@@ -10,6 +9,7 @@ const axios = require('axios');
 const { MongoClient, ObjectId } = require("mongodb");
 const cors = require('cors');
 require('dotenv').config();
+console.log("MongoDB Server URL:", process.env.MONGO_DB_SERVER);
 
 // Connection URL
 const url = process.env.MONGO_DB_SERVER;
@@ -43,6 +43,41 @@ app.use(cors({
 //*******************************
 // Routes and functions for API 
 //*******************************
+
+// app.get("/", async(req,res) => {
+//     const currentDate = new Date();
+//     console.log(currentDate);
+//     const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+//     console.log(formattedDate); // e.g., 2024-11-29
+//     const listQuery = 'Combined Print and E-Book Fiction';
+
+//     let bestSellingBooks = `https://api.nytimes.com/svc/books/v3/lists/${formattedDate}/${list}.json`;
+//     try{
+//         const response = await axios.get(bestSellingBooks);
+//         const bestSellerList = response.results;
+//         // const extractedData = extractWeeklyBestSellerData(bestSellerList.docs); 
+//         console.log(bestSellerList);
+//     }catch(error){
+//         console.error("Error fetching search results:", error);
+//         res.status(500).send("Error fetching search results");
+// }});
+
+// const extractWeeklyBestSellerData = (docs) => {
+//     return docs.map((doc) => ({
+//         title: doc.title || null,
+//         isbn: doc.isbn || null,
+//         author_name: doc.author_name || null,
+//         first_publish_year: doc.first_publish_year || null,
+//         publish_year: doc.publish_year || null,
+//         publisher: doc.publisher || null,
+//         ratings_average: doc.ratings_average || null,
+//         first_sentence: doc.first_sentence || null,
+//         subject: doc.subject || null,
+//         subject_key: doc.subject_key || null,
+//       }));
+// }
+
+
 app.get("/search/isbn/:isbn", async (req,res) => {
     const { isbn } = req.params;
   
