@@ -36,9 +36,7 @@ const app = express();
 const BASE_URL = "https://openlibrary.org/search.json";
 app.use(express.json());
 
-app.use(cors({
-    origin: 'http://localhost:5173',
-}));
+app.use(cors());
 
 //*******************************
 // Routes and functions for API 
