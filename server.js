@@ -335,29 +335,30 @@ app.get("/bookshelf/getallbooks", async (req, res) => {
                 error: `No bookshelves found for user '${username}'`,
             });
         }
+        
+        const allBooks = bookshelves.map(shelf => ({
+            bookshelfName: shelf.shelfname,
+            books: (shelf.books || [])
+            .filter(book => !book.isDeleted) // Exclude soft-deleted books
+            .map(book => ({
+                title: book.title,
+                author: book.author,
+                isbn: book.isbn,
+                publish_year: book.publish_year
+            }))
+        }))
+        // Sort by `bookshelfName` at the `bookshelf` level
+        .sort((a, b) => a.bookshelfName.localeCompare(b.bookshelfName));
 
-        // Flatten and filter active books, then sort
-        const allBooks = bookshelves.flatMap((shelf) =>
-            (shelf.books || [])
-                .filter((book) => !book.isDeleted) // Exclude soft-deleted books
-                .map((book) => ({
-                    shelfname: shelf.shelfname,
-                    title: book.title,
-                    author: book.author,
-                    isbn: book.isbn,
-                    publish_year: book.publish_year,
-                }))
-        );
-
-        // Sort by shelfname and then by title
-        allBooks.sort((a, b) => {
-            const shelfComparison = a.shelfname.localeCompare(b.shelfname);
-            return shelfComparison !== 0 ? shelfComparison : a.title.localeCompare(b.title);
+        // Sort books within each shelf by title
+        allBooks.forEach(shelf => {
+            shelf.books.sort((a, b) => a.title.localeCompare(b.title));
         });
 
+        // Return the response with the correct structure
         res.status(200).json({
-            username,
-            books: allBooks,
+        username,
+        bookshelf: allBooks
         });
     } catch (error) {
         console.error("Error retrieving books:", error);
