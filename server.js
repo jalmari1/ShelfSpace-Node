@@ -2,7 +2,6 @@
 // import axios from "axios";
 // import { MongoClient, ObjectId } from "mongodb";
 // import "dotenv/config";
-console.log("MongoDB Server URL:", process.env.MONGO_DB_SERVER);
 // import cors from "cors";
 
 const express = require("express");
@@ -10,10 +9,17 @@ const axios = require('axios');
 const { MongoClient, ObjectId } = require("mongodb");
 const cors = require('cors');
 require('dotenv').config();
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // Connection URL
 const url = process.env.MONGO_DB_SERVER;
 const client = new MongoClient(url);
+
+// SECRET KEY
+// Secret key for JWT signing
+const SECRET_KEY = "shelfspacesecretkey";
+
 
 // Database Name
 const dbName = "ShelfSpace";
@@ -599,7 +605,67 @@ app.delete("/review/delete", async (req, res) => {
     }
 });
 
+// User registration 
+app.post("/register", async (req, res) => {
+    const { username, password, firstname, lastname, email } = req.body;
+  
+    if (!username || !password || !firstname || !lastname || !email) {
+        return res.status(400).json({ error: "Username, password, firstname, lastname and email are required" });
+    }
+    // Hash the password before storing
+    const hashedPassword = await bcrypt.hash(password, 10);
+    try {
 
+        // check whether the username exist
+        const existingUser = await users.findOne({ username });
+
+        if (existingUser) {
+            return res.status(409).json({ error: `User '${username}' already exists` });
+        }
+
+        const newUser = {
+            username : username,
+            password : hashedPassword,
+            firstname : firstname,
+            lastname : lastname, 
+            email : email
+          };
+        await users.insertOne(newUser);
+        
+        res.status(201).json({
+            message: `'${username}' is registered successfully`,
+        });
+
+    } catch (error) {
+        console.error("Error for registration: ", error);
+        res.status(500).json({error: "An error occurred while register a user"});
+    }
+});
+
+// User Login
+app.post("/login", async (req, res) => {
+    const { username, password } = req.body;
+    const user = await users.findOne({ username }); 
+  
+    if (!user) {
+      return res.status(400).json("The user does not exist.");
+    }
+  
+    // Compare the provided password with the hashed password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json("Incorrect password");
+    }
+  
+    // Generate a JWT
+    const token = jwt.sign(
+      { username: user.username, email: user.email },
+      SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+    res.json({ token });
+});
+  
 
 // Start the server
 const PORT = 3000;
