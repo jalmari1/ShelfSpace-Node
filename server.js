@@ -164,6 +164,8 @@ app.get("/search/author", async (req,res) => {
       first_sentence: doc.first_sentence || null,
       subject: doc.subject || null,
       subject_key: doc.subject_key || null,
+      cover_edition_key: doc.cover_edition_key || null,
+      key: doc.key || null
     }));
   };
 
@@ -190,7 +192,10 @@ app.post("/bookshelf/newbookshelf", async (req, res) =>{
             shelfname : shelfname
           };
           const result = await bookshelf.insertOne(newBookshelf);
-          res.status(201).json("Bookshelf '"+ shelfname +"' created successfully: " + result);
+          res.status(201).json({
+            message: `Bookshelf ${shelfname} created successfully.`,
+            result: result
+          });
       
     }catch (error){
         console.error(error);
