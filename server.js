@@ -238,7 +238,7 @@ app.post("/bookshelf/addbook", async (req, res) => {
         const bookExists = existingBookshelf.books?.some((b) => b.isbn === isbn);
 
         if (bookExists) {
-            return res.status(409).json({
+            return res.status(400).json({
                 error: `Book with ISBN '${isbn}' already exists in the bookshelf '${shelfname}'`,
             });
         }
