@@ -318,6 +318,7 @@ app.delete("/bookshelf/removebook", async (req, res) => {
 
 
 // get all bookshelves and books for a given user, sort by bookshelf name, then by title
+/* before adding the authenticateToken
 app.get("/bookshelf/getallbooks", async (req, res) => {
     try {
         const { username } = req.query;
@@ -328,6 +329,52 @@ app.get("/bookshelf/getallbooks", async (req, res) => {
                 error: "Username is required",
             });
         }
+
+        // Retrieve all bookshelves for the user
+        const bookshelves = await bookshelf
+            .find({ username })
+            .project({ books: 1, shelfname: 1, _id: 0 }) // Project only necessary fields
+            .toArray();
+
+        if (bookshelves.length === 0) {
+            return res.status(404).json({
+                error: `No bookshelves found for user '${username}'`,
+            });
+        }
+        
+        const allBooks = bookshelves.map(shelf => ({
+            bookshelfName: shelf.shelfname,
+            books: (shelf.books || [])
+            .filter(book => !book.isDeleted) // Exclude soft-deleted books
+            .map(book => ({
+                title: book.title,
+                author: book.author,
+                isbn: book.isbn,
+                publish_year: book.publish_year
+            }))
+        }))
+        // Sort by `bookshelfName` at the `bookshelf` level
+        .sort((a, b) => a.bookshelfName.localeCompare(b.bookshelfName));
+
+        // Sort books within each shelf by title
+        allBooks.forEach(shelf => {
+            shelf.books.sort((a, b) => a.title.localeCompare(b.title));
+        });
+
+        // Return the response with the correct structure
+        res.status(200).json({
+        username,
+        bookshelf: allBooks
+        });
+    } catch (error) {
+        console.error("Error retrieving books:", error);
+        res.status(500).json({ error: "An error occurred while retrieving books" });
+    }
+});
+*/
+app.get("/bookshelf/getallbooks", authenticateToken, async (req, res) => {
+    try {
+        const username = req.user.username;
 
         // Retrieve all bookshelves for the user
         const bookshelves = await bookshelf
@@ -775,13 +822,32 @@ app.post("/login", async (req, res) => {
   
     // Generate a JWT
     const token = jwt.sign(
-      { username: user.username, email: user.email },
+//      { username: user.username, email: user.email },
+      { username: user.username },
       SECRET_KEY,
       { expiresIn: "1h" }
     );
     res.json({ token });
 });
   
+// **Step 5: Protect Routes - Middleware for JWT Verification**
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+    if (!token) {
+      return res.status(401).json("Access denied, no token provided");
+    }
+  
+    try {
+        const verified = jwt.verify(token, SECRET_KEY);
+        req.user = verified;
+        next();
+    } catch (err) {
+      res.status(403).json("Invalid token");
+    }
+  }
+
+
 
 // Start the server
 const PORT = 3000;
