@@ -174,9 +174,10 @@ app.get("/search/author", async (req,res) => {
 // Routes for writing to mongodb 
 //*******************************
 // create new bookshelf
-app.post("/bookshelf/newbookshelf", async (req, res) =>{
+app.post("/bookshelf/newbookshelf", authenticateToken,async (req, res) =>{
     try{
-        const { username, shelfname } = req.body;
+        const { shelfname } = req.body;
+        const username = req.user.username;
         if (!username || !shelfname) {
             return res.status(400).json({ error: "Username and shelf name are required" });
         }
@@ -205,10 +206,14 @@ app.post("/bookshelf/newbookshelf", async (req, res) =>{
 });
 
 // add a book to a bookshelf
-app.post("/bookshelf/addbook", async (req, res) => {
+app.post("/bookshelf/addbook", authenticateToken, async (req, res) => {
     try {
-        const { username, shelfname, book } = req.body;
+        const { shelfname, book } = req.body;
+        const username = req.user.username;
 
+        console.log (username);
+        console.log(shelfname);
+        console.log(book);
         // Validate input
         if (!username || !shelfname || !book) {
             return res.status(400).json({
@@ -266,9 +271,10 @@ app.post("/bookshelf/addbook", async (req, res) => {
 });
 
 // remove a book from the bookshelf
-app.delete("/bookshelf/removebook", async (req, res) => {
+app.delete("/bookshelf/removebook", authenticateToken, async (req, res) => {
     try {
-        const { username, shelfname, isbn } = req.body;
+        const { shelfname, isbn } = req.body;
+        const username = req.user.username;
 
         // Validate input
         if (!username || !shelfname || !isbn) {
@@ -419,10 +425,10 @@ app.get("/bookshelf/getallbooks", authenticateToken, async (req, res) => {
 });
 
 // get books for specific username + shelfname, sort by title
-app.get("/bookshelf/getbooks", async (req, res) => {
+app.get("/bookshelf/getbooks", authenticateToken, async (req, res) => {
     try {
-        const { username, shelfname } = req.query;
-
+        const { shelfname } = req.query;
+        const username = req.user.username;
         // Validate input
         if (!username || !shelfname) {
             return res.status(400).json({
@@ -463,9 +469,10 @@ app.get("/bookshelf/getbooks", async (req, res) => {
 });
 
 // soft delete a bookshelf
-app.delete("/bookshelf/deleteshelf", async (req, res) => {
+app.delete("/bookshelf/deleteshelf", authenticateToken, async (req, res) => {
     try {
-        const { username, shelfname } = req.body;
+        const { shelfname } = req.body;
+        const username = req.user.username;
 
         // Validate input
         if (!username || !shelfname) {
@@ -496,9 +503,10 @@ app.delete("/bookshelf/deleteshelf", async (req, res) => {
 });  
 
 // add book review
-app.post("/review/add", async (req, res) => {
+app.post("/review/add", authenticateToken, async (req, res) => {
     try {
-        const { username, isbn, rating, review } = req.body;
+        const { isbn, rating, review } = req.body;
+        const username = req.user.username;
 
         // Validate input
         if (!username || !isbn || typeof rating !== "number" || !review) {
@@ -553,9 +561,10 @@ app.post("/review/add", async (req, res) => {
 
 
 // update book review created by a user for a specific book
-app.put("/review/update", async (req, res) => {
+app.put("/review/update", authenticateToken, async (req, res) => {
     try {
-        const { username, isbn, rating, review } = req.body;
+        const { isbn, rating, review } = req.body;
+        const username = req.user.username;
 
         // Validate input
         if (!username || !isbn || typeof rating !== "number" || !review) {
@@ -644,9 +653,10 @@ app.get("/review/getreview", async (req, res) => {
 
 
 // delete user's own review for a specific isbn
-app.delete("/review/delete", async (req, res) => {
+app.delete("/review/delete", authenticateToken, async (req, res) => {
     try {
-        const { username, isbn } = req.body;
+        const { isbn } = req.body;
+        const username = req.user.username;
 
         // Validate input
         if (!username || !isbn) {
