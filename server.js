@@ -702,118 +702,86 @@ app.delete("/review/delete", authenticateToken, async (req, res) => {
     }
 });
 
+// User registration
+app.post("/register", async (req, res) => {
+    const { username, password, firstname, lastname, email } = req.body;
 
-// // User Registration
+    // Validate input
+    if (!username || !password || !firstname || !lastname || !email) {
+        return res.status(400).json({
+            error: "All fields (username, password, firstname, lastname, email) are required",
+        });
+    }
+
+    try {
+        // Check if the username already exists
+        const existingUser = await users.findOne({ username });
+        if (existingUser) {
+            return res.status(409).json({ error: `User '${username}' already exists` });
+        }
+
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create a new user object
+        const newUser = {
+            username: username,
+            password: hashedPassword,
+            firstname: firstname,
+            lastname: lastname,
+            email: email,
+        };
+
+        // Insert the user into the database
+        await users.insertOne(newUser);
+
+        // Respond with success
+        res.status(201).json({
+            message: `User '${username}' registered successfully`,
+        });
+    } catch (error) {
+        console.error("Error during registration:", error);
+        res.status(500).json({ error: "An error occurred while registering the user" });
+    }
+});
+
+
+// // User registration 
 // app.post("/register", async (req, res) => {
 //     const { username, password, firstname, lastname, email } = req.body;
-
-//     // Validate all fields
+  
 //     if (!username || !password || !firstname || !lastname || !email) {
-//         return res.status(400).json({ error: "Username, password, firstname, lastname, and email are required" });
+//         return res.status(400).json({ error: "Username, password, firstname, lastname and email are required" });
 //     }
-
-//     // Validate email format
-//     if (!validator.isEmail(email)) {
-//         return res.status(400).json({ error: "Invalid email format" });
-//     }
-
 //     // Hash the password before storing
 //     const hashedPassword = await bcrypt.hash(password, 10);
 //     try {
-//         // Check whether the username or email already exists
-//         const existingUser = await users.findOne({ $or: [{ username }, { email }] });
+
+//         // check whether the username exist
+//         const existingUser = await users.findOne({ username });
 
 //         if (existingUser) {
-//             return res.status(409).json({ error: `User with username or email already exists` });
+//             return res.status(409).json({ error: `User '${username}' already exists` });
 //         }
 
 //         const newUser = {
-//             username: username,
-//             password: hashedPassword,
-//             firstname: firstname,
-//             lastname: lastname,
-//             email: email,
-//         };
-
+//             username : username,
+//             password : hashedPassword,
+//             firstname : firstname,
+//             lastname : lastname, 
+//             email : email
+//           };
 //         await users.insertOne(newUser);
-
+        
 //         res.status(201).json({
 //             message: `'${username}' is registered successfully`,
 //         });
 
 //     } catch (error) {
-//         console.error("Error during registration: ", error);
-//         res.status(500).json({ error: "An error occurred while registering the user" });
+//         console.error("Error for registration: ", error);
+//         res.status(500).json({error: "An error occurred while register a user"});
 //     }
 // });
-
-// // User Login
-// app.post("/login", async (req, res) => {
-//     const { username, password } = req.body;
-
-//     // Validate login fields
-//     if (!username || !password) {
-//         return res.status(400).json({ error: "Username and password are required" });
-//     }
-
-//     const user = await users.findOne({ username });
-
-//     if (!user) {
-//         return res.status(400).json({ error: "The user does not exist." });
-//     }
-
-//     // Compare the provided password with the hashed password
-//     const isPasswordValid = await bcrypt.compare(password, user.password);
-//     if (!isPasswordValid) {
-//         return res.status(400).json({ error: "Incorrect password" });
-//     }
-
-//     // Generate a JWT
-//     const token = jwt.sign(
-//         { username: user.username, email: user.email },
-//         SECRET_KEY,
-//         { expiresIn: "1h" }
-//     );
-
-//     res.json({ token });
-// });
-
-// User registration 
-app.post("/register", async (req, res) => {
-    const { username, password, firstname, lastname, email } = req.body;
-  
-    if (!username || !password || !firstname || !lastname || !email) {
-        return res.status(400).json({ error: "Username, password, firstname, lastname and email are required" });
-    }
-    // Hash the password before storing
-    const hashedPassword = await bcrypt.hash(password, 10);
-    try {
-
-        // check whether the username exist
-        const existingUser = await users.findOne({ username });
-
-        if (existingUser) {
-            return res.status(409).json({ error: `User '${username}' already exists` });
-        }
-
-        const newUser = {
-            username : username,
-            password : hashedPassword,
-            firstname : firstname,
-            lastname : lastname, 
-            email : email
-          };
-        await users.insertOne(newUser);
-        
-        res.status(201).json({
-            message: `'${username}' is registered successfully`,
-        });
-
-    } catch (error) {
-        console.error("Error for registration: ", error);
-        res.status(500).json({error: "An error occurred while register a user"});
-    }
-});
 
 // User Login
 app.post("/login", async (req, res) => {
