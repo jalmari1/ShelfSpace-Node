@@ -745,43 +745,44 @@ app.post("/register", async (req, res) => {
     }
 });
 
-
-// // User registration 
-// app.post("/register", async (req, res) => {
-//     const { username, password, firstname, lastname, email } = req.body;
+// //User Password change based on username
+// app.post("/changePassword", async (req, res) => {
+//     const { username, newPassword } = req.body;
   
-//     if (!username || !password || !firstname || !lastname || !email) {
-//         return res.status(400).json({ error: "Username, password, firstname, lastname and email are required" });
-//     }
-//     // Hash the password before storing
-//     const hashedPassword = await bcrypt.hash(password, 10);
 //     try {
-
-//         // check whether the username exist
-//         const existingUser = await users.findOne({ username });
-
-//         if (existingUser) {
-//             return res.status(409).json({ error: `User '${username}' already exists` });
-//         }
-
-//         const newUser = {
-//             username : username,
-//             password : hashedPassword,
-//             firstname : firstname,
-//             lastname : lastname, 
-//             email : email
-//           };
-//         await users.insertOne(newUser);
-        
-//         res.status(201).json({
-//             message: `'${username}' is registered successfully`,
-//         });
-
+//       // Check if the token is valid
+//       const token = req.headers.authorization?.split(' ')[1]; // Extract token from the Authorization header
+  
+//       if (!token) {
+//         return res.status(401).json({ error: 'No token provided' });
+//       }
+  
+//       const decoded = jwt.verify(token, SECRET_KEY);  // Verify the token with your SECRET_KEY
+  
+//       if (decoded.username !== username) {
+//         return res.status(401).json({ error: 'Token does not match username' });
+//       }
+  
+//       // Check if the user exists in the database
+//       const existingUser = await users.findOne({ username });
+//       if (!existingUser) {
+//         return res.status(404).json({ error: `User '${username}' not found` });
+//       }
+  
+//       // Hash the new password
+//       const hashedPassword = await bcrypt.hash(newPassword, 10);
+  
+//       // Update the user's password
+//       await users.updateOne({ user }, { $set: { password: hashedPassword } });
+  
+//       return res.status(200).json({
+//         message: `Password for user '${username}' updated successfully`,
+//       });
 //     } catch (error) {
-//         console.error("Error for registration: ", error);
-//         res.status(500).json({error: "An error occurred while register a user"});
+//       console.error("Error during password update:", error);
+//       res.status(500).json({ error: 'Failed to update password. Please try again later.' });
 //     }
-// });
+//   });
 
 // User Login
 app.post("/login", async (req, res) => {
