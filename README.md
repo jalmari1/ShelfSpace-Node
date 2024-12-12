@@ -27,7 +27,7 @@ ShelfSpace is a modern and interactive bookshelf management platform designed to
   
   5. Install dependencies:
      ```bash
-     npm install
+     npm install express axios mongodb dotenv cors bcryptjs jwt
   
   7. Run the project:
      ```bash
