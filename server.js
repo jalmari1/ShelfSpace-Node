@@ -11,7 +11,6 @@ const cors = require('cors');
 require('dotenv').config();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-console.log("MongoDB Server URL:", process.env.MONGO_DB_SERVER);
 
 // Connection URL
 const url = process.env.MONGO_DB_SERVER;
@@ -28,7 +27,6 @@ const dbName = "ShelfSpace";
 let users, bookshelf, bookreview;
 async function connectDb() {
     await client.connect();
-    console.log("Connected successfully to server");
     const db = client.db(dbName);
     users = db.collection("users");
     bookshelf = db.collection("bookshelf");
@@ -48,40 +46,6 @@ app.use(cors());
 //*******************************
 // Routes and functions for API 
 //*******************************
-
-// app.get("/", async(req,res) => {
-//     const currentDate = new Date();
-//     console.log(currentDate);
-//     const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-//     console.log(formattedDate); // e.g., 2024-11-29
-//     const listQuery = 'Combined Print and E-Book Fiction';
-
-//     let bestSellingBooks = `https://api.nytimes.com/svc/books/v3/lists/${formattedDate}/${list}.json`;
-//     try{
-//         const response = await axios.get(bestSellingBooks);
-//         const bestSellerList = response.results;
-//         // const extractedData = extractWeeklyBestSellerData(bestSellerList.docs); 
-//         console.log(bestSellerList);
-//     }catch(error){
-//         console.error("Error fetching search results:", error);
-//         res.status(500).send("Error fetching search results");
-// }});
-
-// const extractWeeklyBestSellerData = (docs) => {
-//     return docs.map((doc) => ({
-//         title: doc.title || null,
-//         isbn: doc.isbn || null,
-//         author_name: doc.author_name || null,
-//         first_publish_year: doc.first_publish_year || null,
-//         publish_year: doc.publish_year || null,
-//         publisher: doc.publisher || null,
-//         ratings_average: doc.ratings_average || null,
-//         first_sentence: doc.first_sentence || null,
-//         subject: doc.subject || null,
-//         subject_key: doc.subject_key || null,
-//       }));
-// }
-
 
 app.get("/search/isbn/:isbn", async (req,res) => {
     const { isbn } = req.params;
@@ -322,62 +286,6 @@ app.delete("/bookshelf/removebook", authenticateToken, async (req, res) => {
     }
 });
 
-
-// get all bookshelves and books for a given user, sort by bookshelf name, then by title
-/* before adding the authenticateToken
-app.get("/bookshelf/getallbooks", async (req, res) => {
-    try {
-        const { username } = req.query;
-
-        // Validate input
-        if (!username) {
-            return res.status(400).json({
-                error: "Username is required",
-            });
-        }
-
-        // Retrieve all bookshelves for the user
-        const bookshelves = await bookshelf
-            .find({ username })
-            .project({ books: 1, shelfname: 1, _id: 0 }) // Project only necessary fields
-            .toArray();
-
-        if (bookshelves.length === 0) {
-            return res.status(404).json({
-                error: `No bookshelves found for user '${username}'`,
-            });
-        }
-        
-        const allBooks = bookshelves.map(shelf => ({
-            bookshelfName: shelf.shelfname,
-            books: (shelf.books || [])
-            .filter(book => !book.isDeleted) // Exclude soft-deleted books
-            .map(book => ({
-                title: book.title,
-                author: book.author,
-                isbn: book.isbn,
-                publish_year: book.publish_year
-            }))
-        }))
-        // Sort by `bookshelfName` at the `bookshelf` level
-        .sort((a, b) => a.bookshelfName.localeCompare(b.bookshelfName));
-
-        // Sort books within each shelf by title
-        allBooks.forEach(shelf => {
-            shelf.books.sort((a, b) => a.title.localeCompare(b.title));
-        });
-
-        // Return the response with the correct structure
-        res.status(200).json({
-        username,
-        bookshelf: allBooks
-        });
-    } catch (error) {
-        console.error("Error retrieving books:", error);
-        res.status(500).json({ error: "An error occurred while retrieving books" });
-    }
-});
-*/
 app.get("/bookshelf/getallbooks", authenticateToken, async (req, res) => {
     try {
         const username = req.user.username;
@@ -744,45 +652,6 @@ app.post("/register", async (req, res) => {
         res.status(500).json({ error: "An error occurred while registering the user" });
     }
 });
-
-// //User Password change based on username
-// app.post("/changePassword", async (req, res) => {
-//     const { username, newPassword } = req.body;
-  
-//     try {
-//       // Check if the token is valid
-//       const token = req.headers.authorization?.split(' ')[1]; // Extract token from the Authorization header
-  
-//       if (!token) {
-//         return res.status(401).json({ error: 'No token provided' });
-//       }
-  
-//       const decoded = jwt.verify(token, SECRET_KEY);  // Verify the token with your SECRET_KEY
-  
-//       if (decoded.username !== username) {
-//         return res.status(401).json({ error: 'Token does not match username' });
-//       }
-  
-//       // Check if the user exists in the database
-//       const existingUser = await users.findOne({ username });
-//       if (!existingUser) {
-//         return res.status(404).json({ error: `User '${username}' not found` });
-//       }
-  
-//       // Hash the new password
-//       const hashedPassword = await bcrypt.hash(newPassword, 10);
-  
-//       // Update the user's password
-//       await users.updateOne({ user }, { $set: { password: hashedPassword } });
-  
-//       return res.status(200).json({
-//         message: `Password for user '${username}' updated successfully`,
-//       });
-//     } catch (error) {
-//       console.error("Error during password update:", error);
-//       res.status(500).json({ error: 'Failed to update password. Please try again later.' });
-//     }
-//   });
 
 // User Login
 app.post("/login", async (req, res) => {
